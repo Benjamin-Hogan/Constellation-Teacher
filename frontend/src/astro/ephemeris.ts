@@ -123,6 +123,43 @@ export function computeSkyConditions(date: Date, lat: number, lon: number): SkyC
   }
 }
 
+// --- Planets ----------------------------------------------------------------
+
+export interface PlanetPosition {
+  name: string
+  raHours: number
+  decDeg: number
+  pos: HorizontalCoord
+  /** Apparent visual magnitude */
+  mag: number
+  color: string
+}
+
+const PLANETS: { body: Body; name: string; color: string }[] = [
+  { body: Body.Mercury, name: 'Mercury', color: '#c9b39a' },
+  { body: Body.Venus, name: 'Venus', color: '#f2ecd8' },
+  { body: Body.Mars, name: 'Mars', color: '#e08a5a' },
+  { body: Body.Jupiter, name: 'Jupiter', color: '#e8dcc0' },
+  { body: Body.Saturn, name: 'Saturn', color: '#dccf9f' },
+]
+
+/** Positions and brightness of the five naked-eye planets. */
+export function computePlanets(date: Date, lat: number, lon: number): PlanetPosition[] {
+  const sky = computeSkyState(date, lat, lon)
+  const observer = new Observer(lat, lon, 0)
+  return PLANETS.map(({ body, name, color }) => {
+    const eq = Equator(body, date, observer, true, true)
+    return {
+      name,
+      raHours: eq.ra,
+      decDeg: eq.dec,
+      pos: toHorizontal(eq.ra, eq.dec, sky),
+      mag: Illumination(body, date).mag,
+      color,
+    }
+  })
+}
+
 // --- Rise/set events -------------------------------------------------------
 
 export interface SkyEvent {

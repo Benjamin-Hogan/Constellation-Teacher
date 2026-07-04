@@ -1,9 +1,10 @@
-import type { NightEvents, SkyConditions } from '../astro/ephemeris'
+import type { NightEvents, PlanetPosition, SkyConditions } from '../astro/ephemeris'
 import { compassName } from '../astro/ephemeris'
 
 interface Props {
   events: NightEvents
   conditions: SkyConditions
+  planets: PlanetPosition[]
 }
 
 function fmtTime(d: Date | null | undefined): string {
@@ -41,9 +42,10 @@ function verdict(events: NightEvents, conditions: SkyConditions): string {
   return `Decent viewing after ${fmtTime(events.darkStart)}; the ${moon.phaseName.toLowerCase()} moon interferes only a little.`
 }
 
-export default function SkyTonight({ events, conditions }: Props) {
+export default function SkyTonight({ events, conditions, planets }: Props) {
   const { moon } = conditions
   const waxing = moon.phaseAngle < 180
+  const planetsUp = planets.filter((p) => p.pos.alt > 0)
   return (
     <section className="panel">
       <h2>Sky tonight</h2>
@@ -91,6 +93,24 @@ export default function SkyTonight({ events, conditions }: Props) {
           {moon.phaseName} · {Math.round(moon.illumination * 100)}% lit
         </span>
       </div>
+      <p className="planets-row">
+        {planetsUp.length > 0 ? (
+          <>
+            Up now:{' '}
+            {planetsUp.map((p, i) => (
+              <span key={p.name}>
+                {i > 0 && ', '}
+                <span className="planet-name" style={{ color: p.color }}>
+                  {p.name}
+                </span>{' '}
+                ({compassName(p.pos.az * (180 / Math.PI))})
+              </span>
+            ))}
+          </>
+        ) : (
+          'No planets above the horizon right now.'
+        )}
+      </p>
       <p className="hint">{verdict(events, conditions)}</p>
     </section>
   )

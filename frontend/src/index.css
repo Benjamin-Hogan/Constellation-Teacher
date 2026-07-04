@@ -249,6 +249,16 @@ body {
   font-size: 13px;
 }
 
+.planets-row {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+
+.planet-name {
+  font-style: italic;
+}
+
 .reset-view {
   position: absolute;
   right: 12px;

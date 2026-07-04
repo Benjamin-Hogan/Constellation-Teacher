@@ -15,7 +15,7 @@ import {
   unproject,
 } from '../astro/projection'
 import type { ScreenPoint, View } from '../astro/projection'
-import type { SkyConditions } from '../astro/ephemeris'
+import type { PlanetPosition, SkyConditions } from '../astro/ephemeris'
 import { compassName } from '../astro/ephemeris'
 import { skyPalette } from '../astro/skycolor'
 
@@ -36,6 +36,7 @@ interface Props {
   lon: number
   date: Date
   conditions: SkyConditions
+  planets: PlanetPosition[]
   viewMode: ViewMode
   onViewModeChange: (mode: ViewMode) => void
   realistic: boolean
@@ -87,6 +88,7 @@ export default function StarMap({
   lon,
   date,
   conditions,
+  planets,
   viewMode,
   onViewModeChange,
   realistic,
@@ -349,6 +351,36 @@ export default function StarMap({
       ctx.globalAlpha = 1
     }
 
+    // --- planets ----------------------------------------------------------------
+    for (const planet of planets) {
+      if (planet.pos.alt <= 0) continue
+      const p = project(planet.pos, v)
+      if (!p) continue
+      if (p.x < -10 || p.x > size.w + 10 || p.y < -10 || p.y > size.h + 10) continue
+      const effMag = realistic ? planet.mag + extinctionMag(planet.pos.alt) : planet.mag
+      const fade = realistic ? Math.max(0, Math.min(1, (limitingMag - effMag) / 1.2)) : 1
+      if (fade <= 0.02) continue
+      const dimmed = highlight !== null
+      const radius = Math.max(1.6, (6.3 - effMag) * 0.55 * Math.sqrt(v.zoom) * 0.8)
+      ctx.globalAlpha = (dimmed ? 0.3 : 1) * fade
+      // subtle glow to set planets apart from stars
+      ctx.fillStyle = planet.color
+      ctx.globalAlpha *= 0.25
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, radius * 2.2, 0, 2 * Math.PI)
+      ctx.fill()
+      ctx.globalAlpha = (dimmed ? 0.3 : 1) * fade
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, radius, 0, 2 * Math.PI)
+      ctx.fill()
+      if (!hideLabels && !dimmed && fade > 0.3) {
+        ctx.globalAlpha = 0.9 * fade
+        ctx.font = 'italic 11px system-ui, sans-serif'
+        ctx.fillText(planet.name, p.x + radius + 4, p.y + 4)
+      }
+      ctx.globalAlpha = 1
+    }
+
     // --- Sun and Moon ---------------------------------------------------------
     if (realistic) {
       const bodyRadius = Math.max(7, 0.0045 * v.radius * v.zoom)
@@ -519,6 +551,7 @@ export default function StarMap({
     overheadView,
     horizonView,
     conditions,
+    planets,
     realistic,
     showGrid,
     hovered,

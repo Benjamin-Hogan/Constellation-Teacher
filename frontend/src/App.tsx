@@ -8,7 +8,12 @@ import {
   constellationCenter,
   visibleConstellations,
 } from './astro/sky'
-import { computeNightEvents, computeSkyConditions, fixedRiseSet } from './astro/ephemeris'
+import {
+  computeNightEvents,
+  computePlanets,
+  computeSkyConditions,
+  fixedRiseSet,
+} from './astro/ephemeris'
 import StarMap from './components/StarMap'
 import type { ViewMode } from './components/StarMap'
 import ControlPanel from './components/ControlPanel'
@@ -92,6 +97,7 @@ export default function App() {
   )
 
   const conditions = useMemo(() => computeSkyConditions(date, lat, lon), [date, lat, lon])
+  const planets = useMemo(() => computePlanets(date, lat, lon), [date, lat, lon])
   const nightEvents = useMemo(() => computeNightEvents(date, lat, lon), [date, lat, lon])
 
   const visible = useMemo(
@@ -216,7 +222,7 @@ export default function App() {
               RA/Dec grid
             </label>
           </section>
-          <SkyTonight events={nightEvents} conditions={conditions} />
+          <SkyTonight events={nightEvents} conditions={conditions} planets={planets} />
           <section className="panel">
             <h2>Progress</h2>
             <div className="progress-bar">
@@ -239,6 +245,7 @@ export default function App() {
           lon={lon}
           date={date}
           conditions={conditions}
+          planets={planets}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           realistic={realistic}

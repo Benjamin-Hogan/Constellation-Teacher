@@ -9,6 +9,7 @@ An interactive web app that teaches the constellations. Enter your latitude and 
 The map itself shows the sky as it really looks:
 
 - **Realistic sky** (toggleable) — the Sun and Moon are drawn at their true positions, the Moon with its correct phase. Daylight and twilight tint the sky; moonlight and atmospheric dimming wash out faint stars just like in real life.
+- **Planets** — the five naked-eye planets (Mercury, Venus, Mars, Jupiter, Saturn) appear at their true positions with correct brightness, and the Sky tonight panel lists which are up and where to look.
 - **Two views** — an overhead planisphere (whole sky at once) and a first-person horizon view: pick a compass direction and see exactly what is in front of you, ground and all.
 - **Sky tonight** — sunset/sunrise, full-darkness window, moonrise/moonset, moon phase, and a viewing-conditions verdict for your date and location.
 - **RA/Dec everywhere** — an equatorial grid overlay and a live cursor readout of Alt/Az and RA/Dec under the mouse.
