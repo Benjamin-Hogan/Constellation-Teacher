@@ -1,11 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from './api'
 import type { ConstellationLines, ConstellationMeta, Mode, Star, User } from './types'
-import { buildHipIndex, computePositions, computeSkyState, visibleConstellations } from './astro/sky'
+import {
+  buildHipIndex,
+  computePositions,
+  computeSkyState,
+  constellationCenter,
+  visibleConstellations,
+} from './astro/sky'
+import { computeNightEvents, computeSkyConditions, fixedRiseSet } from './astro/ephemeris'
 import StarMap from './components/StarMap'
+import type { ViewMode } from './components/StarMap'
 import ControlPanel from './components/ControlPanel'
 import InfoPanel from './components/InfoPanel'
+import type { FinderInfo } from './components/InfoPanel'
 import AuthPanel from './components/AuthPanel'
+import SkyTonight from './components/SkyTonight'
 import Tour from './modes/Tour'
 import Quiz from './modes/Quiz'
 import type { MapSelection } from './modes/Quiz'
@@ -22,6 +32,9 @@ export default function App() {
   const [lon, setLon] = useState(-74.0)
   const [date, setDate] = useState(() => new Date())
   const [mode, setMode] = useState<Mode>('explore')
+  const [viewMode, setViewMode] = useState<ViewMode>('overhead')
+  const [realistic, setRealistic] = useState(true)
+  const [showGrid, setShowGrid] = useState(false)
 
   const [hovered, setHovered] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
@@ -71,16 +84,34 @@ export default function App() {
   const linesByAbbr = useMemo(() => new Map(lines.map((l) => [l.abbr, l])), [lines])
   const hipIndex = useMemo(() => (stars ? buildHipIndex(stars) : new Map<number, number>()), [stars])
 
+  const skyState = useMemo(() => computeSkyState(date, lat, lon), [date, lat, lon])
+
   const positions = useMemo(
-    () => (stars ? computePositions(stars, computeSkyState(date, lat, lon)) : []),
-    [stars, date, lat, lon],
+    () => (stars ? computePositions(stars, skyState) : []),
+    [stars, skyState],
   )
+
+  const conditions = useMemo(() => computeSkyConditions(date, lat, lon), [date, lat, lon])
+  const nightEvents = useMemo(() => computeNightEvents(date, lat, lon), [date, lat, lon])
 
   const visible = useMemo(
     () => (stars ? visibleConstellations(stars, positions, lines, hipIndex) : []),
     [stars, positions, lines, hipIndex],
   )
   const visibleSet = useMemo(() => new Set(visible.map((v) => v.abbr)), [visible])
+
+  const finder = useMemo<FinderInfo | null>(() => {
+    if (!stars || !selected) return null
+    const con = linesByAbbr.get(selected)
+    if (!con) return null
+    const center = constellationCenter(con, stars, hipIndex)
+    if (!center) return null
+    return {
+      raHours: center.raHours,
+      decDeg: center.decDeg,
+      visibility: fixedRiseSet(center.raHours, center.decDeg, date, lat, skyState),
+    }
+  }, [stars, selected, linesByAbbr, hipIndex, date, lat, skyState])
 
   const toggleLearned = useCallback(
     (abbr: string) => {
@@ -160,11 +191,32 @@ export default function App() {
             lon={lon}
             date={date}
             onLocationChange={(la, lo) => {
-              setLat(la)
-              setLon(lo)
+              // astronomy-engine throws on out-of-range coordinates
+              setLat(Math.max(-90, Math.min(90, Number.isFinite(la) ? la : 0)))
+              setLon(Math.max(-180, Math.min(180, Number.isFinite(lo) ? lo : 0)))
             }}
             onDateChange={setDate}
           />
+          <section className="panel">
+            <h2>View</h2>
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={realistic}
+                onChange={(e) => setRealistic(e.target.checked)}
+              />
+              Realistic sky (sun, moon, twilight)
+            </label>
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={showGrid}
+                onChange={(e) => setShowGrid(e.target.checked)}
+              />
+              RA/Dec grid
+            </label>
+          </section>
+          <SkyTonight events={nightEvents} conditions={conditions} />
           <section className="panel">
             <h2>Progress</h2>
             <div className="progress-bar">
@@ -178,15 +230,6 @@ export default function App() {
               {!user && learned.size > 0 ? ' (log in to save)' : ''}
             </p>
           </section>
-          {mode === 'explore' && (
-            <section className="panel">
-              <h2>How to use</h2>
-              <p className="hint">
-                Hover the map to trace constellations, click one to read its story. Drag
-                to pan, scroll to zoom. Green names are ones you have learned.
-              </p>
-            </section>
-          )}
         </div>
 
         <StarMap
@@ -195,6 +238,11 @@ export default function App() {
           lat={lat}
           lon={lon}
           date={date}
+          conditions={conditions}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          realistic={realistic}
+          showGrid={showGrid}
           hovered={hovered}
           selected={mode === 'explore' ? selected : null}
           highlight={highlight}
@@ -208,6 +256,7 @@ export default function App() {
           <InfoPanel
             meta={selectedMeta}
             lines={linesByAbbr.get(selected)}
+            finder={finder}
             isVisible={visibleSet.has(selected)}
             isLearned={learned.has(selected)}
             onToggleLearned={() => toggleLearned(selected)}

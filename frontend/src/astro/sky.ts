@@ -42,6 +42,20 @@ export function computePositions(stars: Star[], sky: SkyState): HorizontalCoord[
   return stars.map((s) => toHorizontal(s.ra, s.dec, sky))
 }
 
+/** Inverse of toHorizontal: alt/az back to RA (hours) and Dec (degrees). */
+export function toEquatorial(pos: HorizontalCoord, sky: SkyState): { raHours: number; decDeg: number } {
+  const sinDec =
+    Math.sin(pos.alt) * Math.sin(sky.latRad) +
+    Math.cos(pos.alt) * Math.cos(sky.latRad) * Math.cos(pos.az)
+  const dec = Math.asin(Math.max(-1, Math.min(1, sinDec)))
+  const ha = Math.atan2(
+    -Math.sin(pos.az) * Math.cos(pos.alt),
+    (Math.sin(pos.alt) - sinDec * Math.sin(sky.latRad)) / Math.cos(sky.latRad),
+  )
+  const raHours = (((sky.lst - ha / DEG / 15) % 24) + 24) % 24
+  return { raHours, decDeg: dec / DEG }
+}
+
 export interface VisibleConstellation {
   abbr: string
   /** Mean altitude of line stars above the horizon, degrees */
@@ -91,6 +105,34 @@ export function visibleConstellations(
     (a, b) => b.altitude - 12 * b.brightest - (a.altitude - 12 * a.brightest),
   )
   return out
+}
+
+/** Mean RA/Dec of a constellation's line stars (vector average, RA-wrap safe). */
+export function constellationCenter(
+  con: ConstellationLines,
+  stars: Star[],
+  hipIndex: Map<number, number>,
+): { raHours: number; decDeg: number } | null {
+  const hips = new Set<number>()
+  for (const seg of con.lines) for (const hip of seg) hips.add(hip)
+  let x = 0
+  let y = 0
+  let z = 0
+  let n = 0
+  for (const hip of hips) {
+    const idx = hipIndex.get(hip)
+    if (idx === undefined) continue
+    const ra = stars[idx].ra * 15 * DEG
+    const dec = stars[idx].dec * DEG
+    x += Math.cos(dec) * Math.cos(ra)
+    y += Math.cos(dec) * Math.sin(ra)
+    z += Math.sin(dec)
+    n++
+  }
+  if (n === 0) return null
+  const raHours = ((Math.atan2(y, x) / DEG / 15) % 24 + 24) % 24
+  const decDeg = Math.asin(z / Math.hypot(x, y, z)) / DEG
+  return { raHours, decDeg }
 }
 
 /** Map from HIP number to index in the stars array. */

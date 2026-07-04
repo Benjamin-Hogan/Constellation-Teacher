@@ -2,15 +2,22 @@
 
 An interactive web app that teaches the constellations. Enter your latitude and longitude (or use browser geolocation), pick any date and time, and the app renders the sky as it appears from your location — then helps you learn it through three modes:
 
-- **Explore** — hover and click constellations on the map to see their lines, names, mythology, and notable stars.
+- **Explore** — hover and click constellations on the map to see their lines, names, mythology, notable stars, plus RA/Dec coordinates and tonight's rise/set times so you can find them outside.
 - **Guided tour** — a step-by-step walkthrough of the best constellations visible right now.
 - **Quiz** — "find this constellation" and "name this constellation" challenges with scoring.
+
+The map itself shows the sky as it really looks:
+
+- **Realistic sky** (toggleable) — the Sun and Moon are drawn at their true positions, the Moon with its correct phase. Daylight and twilight tint the sky; moonlight and atmospheric dimming wash out faint stars just like in real life.
+- **Two views** — an overhead planisphere (whole sky at once) and a first-person horizon view: pick a compass direction and see exactly what is in front of you, ground and all.
+- **Sky tonight** — sunset/sunrise, full-darkness window, moonrise/moonset, moon phase, and a viewing-conditions verdict for your date and location.
+- **RA/Dec everywhere** — an equatorial grid overlay and a live cursor readout of Alt/Az and RA/Dec under the mouse.
 
 Accounts are optional: the app is fully usable anonymously, but logging in saves your learning progress and quiz scores.
 
 ## How it works
 
-All sky computation happens client-side. Star positions (RA/Dec, J2000) are converted to altitude/azimuth for the observer's location and time using [astronomy-engine](https://www.npmjs.com/package/astronomy-engine), then drawn on a canvas with a stereographic projection centered on the zenith — the same projection used by planispheres. Stars below the horizon are culled, so scrubbing the time slider shows the sky rotating in real time.
+All sky computation happens client-side. Star positions (RA/Dec, J2000) are converted to altitude/azimuth for the observer's location and time using [astronomy-engine](https://www.npmjs.com/package/astronomy-engine), which also supplies Sun/Moon positions, moon phase, and rise/set searches. The sky is drawn on a canvas with a stereographic projection about an arbitrary view center: the zenith for the overhead planisphere view, or a point above the horizon for the first-person view. Scrubbing the time slider shows the sky rotating (and brightening/darkening) in real time.
 
 ## Repository layout
 

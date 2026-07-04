@@ -125,6 +125,130 @@ body {
   overflow: hidden;
 }
 
+.map-tabs {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 2px;
+  background: rgba(13, 19, 34, 0.85);
+  border: 1px solid var(--panel-border);
+  border-radius: 9px;
+  padding: 3px;
+}
+
+.map-tab {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.map-tab:hover {
+  color: var(--text);
+}
+
+.map-tab.active {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.compass-bar {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  background: rgba(13, 19, 34, 0.85);
+  border: 1px solid var(--panel-border);
+  border-radius: 9px;
+  padding: 3px;
+}
+
+.compass-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  padding: 5px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 32px;
+}
+
+.compass-btn:hover {
+  color: var(--text);
+}
+
+.compass-btn.active {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.cursor-readout {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(13, 19, 34, 0.85);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 7px 11px;
+  font-size: 12px;
+  color: var(--text-dim);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.check-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  margin: 6px 0;
+  cursor: pointer;
+}
+
+.check-row input {
+  width: auto;
+  accent-color: var(--accent);
+}
+
+.events-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.events-table td {
+  padding: 2px 0;
+}
+
+.events-table td:first-child {
+  color: var(--text-dim);
+}
+
+.events-table td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.moon-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
 .reset-view {
   position: absolute;
   right: 12px;
