@@ -190,6 +190,27 @@ body {
   color: var(--text);
 }
 
+.bearing-field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  padding-left: 8px;
+  border-left: 1px solid var(--panel-border);
+  color: var(--text-dim);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.bearing-field input {
+  width: 52px;
+  padding: 4px 6px;
+  font-size: 12px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .cursor-readout {
   position: absolute;
   left: 12px;

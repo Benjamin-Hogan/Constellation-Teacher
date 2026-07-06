@@ -109,6 +109,8 @@ export default function StarMap({
   const [overheadView, setOverheadView] = useState({ zoom: 1, panX: 0, panY: 0 })
   const [horizonView, setHorizonView] = useState({ zoom: 1.6, azDeg: 180, altDeg: 22 })
   const [cursor, setCursor] = useState<CursorInfo | null>(null)
+  /** Text in the bearing input while the user is editing it (null = not editing) */
+  const [bearingText, setBearingText] = useState<string | null>(null)
   const dragRef = useRef<{
     startX: number
     startY: number
@@ -720,6 +722,25 @@ export default function StarMap({
               {name}
             </button>
           ))}
+          <label className="bearing-field" title="Type the bearing from your phone's compass">
+            <input
+              type="number"
+              min={0}
+              max={359}
+              step={1}
+              value={bearingText ?? Math.round(horizonView.azDeg) % 360}
+              onFocus={() => setBearingText(String(Math.round(horizonView.azDeg) % 360))}
+              onBlur={() => setBearingText(null)}
+              onChange={(e) => {
+                setBearingText(e.target.value)
+                const deg = Number(e.target.value)
+                if (Number.isFinite(deg)) {
+                  setHorizonView((v) => ({ ...v, azDeg: ((deg % 360) + 360) % 360 }))
+                }
+              }}
+            />
+            <span>° {compassName(horizonView.azDeg)}</span>
+          </label>
         </div>
       )}
 
